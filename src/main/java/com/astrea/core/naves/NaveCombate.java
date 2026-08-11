@@ -1,41 +1,48 @@
 package com.astrea.core.naves;
 
 import com.astrea.core.base.NaveEspacial;
-import com.astrea.core.interfaces.Defendible;
-import com.astrea.core.interfaces.Atacable;
 import com.astrea.core.exceptions.AstreaException;
-import com.astrea.core.exceptions.CombustibleInsuficienteException;
 import com.astrea.core.exceptions.EscudoCriticoException;
 
-public class NaveCombate extends NaveEspacial implements Defendible, Atacable {
+public class NaveCombate extends NaveEspacial {
+
+    private static final double CONSUMO_VIAJE = 2.0;
+    private static final double CONSUMO_ATAQUE = 15.0;
+    private static final double FACTOR_ESCUDO_INICIAL = 0.4;
+
+    private final double potenciaArma;
     private double integridadEscudo;
-    private double potenciaArma;
 
-    public NaveCombate(String matricula, String modelo, double combustibleInicial, double capacidadCombustible, double potenciaArma) throws AstreaException {
-        super(matricula, modelo, combustibleInicial, capacidadCombustible);
-        // TODO: Implementar asignación
-    }
-
-    public double getIntegridadEscudo() {
-        return 0.0; // TODO: Implementar
+    public NaveCombate(String matricula, String modelo, double combustible,
+                        double capacidadCombustible, double potenciaArma) throws AstreaException {
+        super(matricula, modelo, combustible, capacidadCombustible);
+        this.potenciaArma = potenciaArma;
+        this.integridadEscudo = capacidadCombustible * FACTOR_ESCUDO_INICIAL;
     }
 
     public double getPotenciaArma() {
-        return 0.0; // TODO: Implementar
+        return potenciaArma;
+    }
+
+    public double getIntegridadEscudo() {
+        return integridadEscudo;
     }
 
     @Override
-    public void viajar(double distanciaAniosLuz) throws CombustibleInsuficienteException {
-        // TODO: Implementar lógica
+    public void viajar(double distancia) throws AstreaException {
+        consumirCombustible(CONSUMO_VIAJE * distancia);
     }
 
-    @Override
-    public void recibirImpacto(double potenciaDano) throws EscudoCriticoException {
-        // TODO: Implementar lógica
+    public void recibirImpacto(double dano) throws EscudoCriticoException {
+        if (integridadEscudo - dano < 0) {
+            throw new EscudoCriticoException(
+                    "El impacto de " + dano + " deja el escudo por debajo de cero");
+        }
+        integridadEscudo -= dano;
     }
 
-    @Override
-    public void atacar(Defendible objetivo) throws AstreaException {
-        // TODO: Implementar lógica
+    public void atacar(NaveCombate objetivo) throws AstreaException {
+        consumirCombustible(CONSUMO_ATAQUE);
+        objetivo.recibirImpacto(this.potenciaArma);
     }
 }
